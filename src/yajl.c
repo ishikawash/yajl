@@ -17,7 +17,7 @@
 #include "api/yajl_parse.h"
 #include "yajl_lex.h"
 #include "yajl_parser.h"
-#include "yajl_alloc.h"
+#include "api/yajl_alloc.h"
 
 #include <stdlib.h>
 #include <string.h>

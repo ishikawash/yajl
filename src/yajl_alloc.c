@@ -20,7 +20,7 @@
  * free
  */
 
-#include "yajl_alloc.h"
+#include "api/yajl_alloc.h"
 #include <stdlib.h>
 
 static void * yajl_internal_malloc(void *ctx, size_t sz)
@@ -42,11 +42,22 @@ static void yajl_internal_free(void *ctx, void * ptr)
     free(ptr);
 }
 
+static yajl_alloc_funcs default_alloc_funcs = {
+    yajl_internal_malloc,
+    yajl_internal_realloc,
+    yajl_internal_free,
+    NULL
+};
+
 void yajl_set_default_alloc_funcs(yajl_alloc_funcs * yaf)
 {
-    yaf->malloc = yajl_internal_malloc;
-    yaf->free = yajl_internal_free;
-    yaf->realloc = yajl_internal_realloc;
-    yaf->ctx = NULL;
+    yaf->malloc = default_alloc_funcs.malloc;
+    yaf->free = default_alloc_funcs.free;
+    yaf->realloc = default_alloc_funcs.realloc;
+    yaf->ctx = default_alloc_funcs.ctx;
 }
 
+yajl_alloc_funcs* yajl_default_alloc_funcs(void)
+{
+    return &default_alloc_funcs;
+}

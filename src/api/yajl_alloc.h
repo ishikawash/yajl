@@ -23,12 +23,26 @@
 #ifndef __YAJL_ALLOC_H__
 #define __YAJL_ALLOC_H__
 
-#include "api/yajl_common.h"
+#include <yajl/yajl_common.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define YA_MALLOC(afs, sz) (afs)->malloc((afs)->ctx, (sz))
 #define YA_FREE(afs, ptr) (afs)->free((afs)->ctx, (ptr))
 #define YA_REALLOC(afs, ptr, sz) (afs)->realloc((afs)->ctx, (ptr), (sz))
 
 void yajl_set_default_alloc_funcs(yajl_alloc_funcs * yaf);
+
+#define YA_DEFAULT_MALLOC(sz)            YA_MALLOC(yajl_default_alloc_funcs(), (sz))
+#define YA_DEFAULT_FREE(ptr)             YA_FREE(yajl_default_alloc_funcs(), (ptr))
+#define YA_DEFAULT_REALLOC(ptr, sz)      YA_REALLOC(yajl_default_alloc_funcs(), (ptr), (sz))
+
+yajl_alloc_funcs* yajl_default_alloc_funcs(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

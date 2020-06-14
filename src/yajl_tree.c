@@ -60,7 +60,7 @@ static yajl_val value_alloc (yajl_type type)
 {
     yajl_val v;
 
-    v = malloc (sizeof (*v));
+    v = YA_DEFAULT_MALLOC (sizeof (*v));
     if (v == NULL) return (NULL);
     memset (v, 0, sizeof (*v));
     v->type = type;
@@ -76,15 +76,15 @@ static void yajl_object_free (yajl_val v)
 
     for (i = 0; i < v->u.object.len; i++)
     {
-        free((char *) v->u.object.keys[i]);
+        YA_DEFAULT_FREE((char *) v->u.object.keys[i]);
         v->u.object.keys[i] = NULL;
         yajl_tree_free (v->u.object.values[i]);
         v->u.object.values[i] = NULL;
     }
 
-    free((void*) v->u.object.keys);
-    free(v->u.object.values);
-    free(v);
+    YA_DEFAULT_FREE((void*) v->u.object.keys);
+    YA_DEFAULT_FREE(v->u.object.values);
+    YA_DEFAULT_FREE(v);
 }
 
 static void yajl_array_free (yajl_val v)
@@ -99,8 +99,8 @@ static void yajl_array_free (yajl_val v)
         v->u.array.values[i] = NULL;
     }
 
-    free(v->u.array.values);
-    free(v);
+    YA_DEFAULT_FREE(v->u.array.values);
+    YA_DEFAULT_FREE(v);
 }
 
 /*
@@ -114,7 +114,7 @@ static int context_push(context_t *ctx, yajl_val v)
 {
     stack_elem_t *stack;
 
-    stack = malloc (sizeof (*stack));
+    stack = YA_DEFAULT_MALLOC (sizeof (*stack));
     if (stack == NULL)
         RETURN_ERROR (ctx, ENOMEM, "Out of memory");
     memset (stack, 0, sizeof (*stack));
@@ -144,7 +144,7 @@ static yajl_val context_pop(context_t *ctx)
 
     v = stack->value;
 
-    free (stack);
+    YA_DEFAULT_FREE (stack);
 
     return (v);
 }
@@ -164,12 +164,12 @@ static int object_add_keyval(context_t *ctx,
     /* We're assuring that "obj" is an object in "context_add_value". */
     assert(YAJL_IS_OBJECT(obj));
 
-    tmpk = realloc((void *) obj->u.object.keys, sizeof(*(obj->u.object.keys)) * (obj->u.object.len + 1));
+    tmpk = YA_DEFAULT_REALLOC((void *) obj->u.object.keys, sizeof(*(obj->u.object.keys)) * (obj->u.object.len + 1));
     if (tmpk == NULL)
         RETURN_ERROR(ctx, ENOMEM, "Out of memory");
     obj->u.object.keys = tmpk;
 
-    tmpv = realloc(obj->u.object.values, sizeof (*obj->u.object.values) * (obj->u.object.len + 1));
+    tmpv = YA_DEFAULT_REALLOC(obj->u.object.values, sizeof (*obj->u.object.values) * (obj->u.object.len + 1));
     if (tmpv == NULL)
         RETURN_ERROR(ctx, ENOMEM, "Out of memory");
     obj->u.object.values = tmpv;
@@ -195,8 +195,8 @@ static int array_add_value (context_t *ctx,
     /* "context_add_value" will only call us with array values. */
     assert(YAJL_IS_ARRAY(array));
 
-    tmp = realloc(array->u.array.values,
-                  sizeof(*(array->u.array.values)) * (array->u.array.len + 1));
+    tmp = YA_DEFAULT_REALLOC(array->u.array.values,
+                            sizeof(*(array->u.array.values)) * (array->u.array.len + 1));
     if (tmp == NULL)
         RETURN_ERROR(ctx, ENOMEM, "Out of memory");
     array->u.array.values = tmp;
@@ -244,7 +244,7 @@ static int context_add_value (context_t *ctx, yajl_val v)
 
             ctx->stack->key = v->u.string;
             v->u.string = NULL;
-            free(v);
+            YA_DEFAULT_FREE(v);
             return (0);
         }
         else /* if (ctx->key != NULL) */
@@ -277,10 +277,10 @@ static int handle_string (void *ctx,
     if (v == NULL)
         RETURN_ERROR ((context_t *) ctx, STATUS_ABORT, "Out of memory");
 
-    v->u.string = malloc (string_length + 1);
+    v->u.string = YA_DEFAULT_MALLOC (string_length + 1);
     if (v->u.string == NULL)
     {
-        free (v);
+        YA_DEFAULT_FREE (v);
         RETURN_ERROR ((context_t *) ctx, STATUS_ABORT, "Out of memory");
     }
     memcpy(v->u.string, string, string_length);
@@ -298,10 +298,10 @@ static int handle_number (void *ctx, const char *string, size_t string_length)
     if (v == NULL)
         RETURN_ERROR((context_t *) ctx, STATUS_ABORT, "Out of memory");
 
-    v->u.number.r = malloc(string_length + 1);
+    v->u.number.r = YA_DEFAULT_MALLOC(string_length + 1);
     if (v->u.number.r == NULL)
     {
-        free(v);
+        YA_DEFAULT_FREE(v);
         RETURN_ERROR((context_t *) ctx, STATUS_ABORT, "Out of memory");
     }
     memcpy(v->u.number.r, string, string_length);
@@ -480,13 +480,13 @@ void yajl_tree_free (yajl_val v)
 
     if (YAJL_IS_STRING(v))
     {
-        free(v->u.string);
-        free(v);
+        YA_DEFAULT_FREE(v->u.string);
+        YA_DEFAULT_FREE(v);
     }
     else if (YAJL_IS_NUMBER(v))
     {
-        free(v->u.number.r);
-        free(v);
+        YA_DEFAULT_FREE(v->u.number.r);
+        YA_DEFAULT_FREE(v);
     }
     else if (YAJL_GET_OBJECT(v))
     {
@@ -498,6 +498,6 @@ void yajl_tree_free (yajl_val v)
     }
     else /* if (yajl_t_true or yajl_t_false or yajl_t_null) */
     {
-        free(v);
+        YA_DEFAULT_FREE(v);
     }
 }
